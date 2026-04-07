@@ -9,11 +9,23 @@ export default function BottomNav() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
 
+    const [isMounted, setIsMounted] = useState(false);
+
     // Don't show on auth pages
     const hiddenPaths = ['/login', '/signup'];
     if (hiddenPaths.includes(pathname)) return null;
 
     useEffect(() => {
+        setIsMounted(true);
+
+        const cached = localStorage.getItem('apckarma-me');
+        if (cached) {
+            try {
+                const user = JSON.parse(cached);
+                if (user?.role === 'admin') setIsAdmin(true);
+            } catch (e) { }
+        }
+
         fetch('/api/auth/me')
             .then(r => r.ok ? r.json() : null)
             .then(data => {
@@ -22,10 +34,14 @@ export default function BottomNav() {
                     fetch('/api/admin/pending')
                         .then(r => r.ok ? r.json() : null)
                         .then(d => { if (d) setPendingCount(d.count); });
+                } else {
+                    setIsAdmin(false);
                 }
             })
             .catch(() => { });
     }, [pathname]);
+
+    if (!isMounted) return null;
 
     const tabs = [
         { path: '/', icon: <LayoutGrid size={22} />, label: 'Board' },
