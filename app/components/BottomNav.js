@@ -1,10 +1,11 @@
 'use client';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { LayoutGrid, PenSquare, Radio, User, Settings } from 'lucide-react';
 
 export default function BottomNav() {
     const pathname = usePathname();
-    const router = useRouter();
     const [isAdmin, setIsAdmin] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
 
@@ -27,31 +28,32 @@ export default function BottomNav() {
     }, [pathname]);
 
     const tabs = [
-        { path: '/', icon: '🏆', label: 'Board' },
-        { path: '/log', icon: '📝', label: 'Log' },
-        { path: '/feed', icon: '📰', label: 'Feed' },
-        { path: '/profile', icon: '👤', label: 'My Logs' },
+        { path: '/', icon: <LayoutGrid size={22} />, label: 'Board' },
+        { path: '/log', icon: <PenSquare size={22} />, label: 'Log' },
+        { path: '/feed', icon: <Radio size={22} />, label: 'Feed' },
+        { path: '/profile', icon: <User size={22} />, label: 'My Logs' },
     ];
 
     if (isAdmin) {
-        tabs.push({ path: '/admin', icon: '⚙️', label: 'Admin' });
+        tabs.push({ path: '/admin', icon: <Settings size={22} />, label: 'Admin' });
     }
 
     return (
         <nav className="bottom-nav">
             <div className="bottom-nav-inner">
                 {tabs.map(tab => (
-                    <button
+                    <Link
                         key={tab.path}
+                        href={tab.path}
                         className={`nav-item ${pathname === tab.path ? 'active' : ''}`}
-                        onClick={() => router.push(tab.path)}
+                        prefetch={true}
                     >
                         <span className="nav-icon">{tab.icon}</span>
                         <span>{tab.label}</span>
                         {tab.path === '/admin' && pendingCount > 0 && (
                             <span className="nav-badge">{pendingCount}</span>
                         )}
-                    </button>
+                    </Link>
                 ))}
             </div>
         </nav>

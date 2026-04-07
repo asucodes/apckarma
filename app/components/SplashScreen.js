@@ -12,9 +12,21 @@ export default function SplashScreen() {
     if (!visible) return null;
 
     return (
-        <div className="splash-overlay">
-            <img src="/mascot.jpg" alt="APC Karma mascot" className="splash-mascot" />
-            <div className="splash-title">APC Karma</div>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: '#151515', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '40px 0' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img
+                    src="/apckarma_white.png"
+                    alt="Loading..."
+                    style={{
+                        width: 160, height: 160, objectFit: 'contain',
+                        filter: 'drop-shadow(0 0 24px rgba(59, 130, 246, 0.45)) drop-shadow(0 0 12px rgba(59, 130, 246, 0.2))',
+                        animation: 'pulse 1.5s ease-in-out infinite'
+                    }}
+                />
+            </div>
+            <div style={{ color: '#F8FAFC', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
+                APC Karma
+            </div>
         </div>
     );
 }

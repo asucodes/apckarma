@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-    title: 'APC Karma — Work Hour Tracker',
+    title: 'APC Karma',
     description: 'Gamified work-hour tracker for Assistant Placement Coordinators',
     icons: { icon: '/mascot.jpg' },
 };

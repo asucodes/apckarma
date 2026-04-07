@@ -19,7 +19,7 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Volunteer not found in roster' }, { status: 404 });
         }
 
-        await addLog(volunteer.name, volunteer.roll, company, hours);
+        await addLog(volunteer.name, volunteer.roll, company, hours, 'approved', session.name || 'Admin Rapid');
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Manual log error:', error);

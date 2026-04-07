@@ -23,7 +23,20 @@ export default function ProfilePage() {
     const [user, setUser] = useState(null);
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        setIsMounted(true);
+        const cachedUser = localStorage.getItem('apckarma-me');
+        if (cachedUser) {
+            try { setUser(JSON.parse(cachedUser)); } catch (e) { }
+        }
+        const cachedLogs = localStorage.getItem('apckarma-mylogs');
+        if (cachedLogs) {
+            try { setLogs(JSON.parse(cachedLogs)); } catch (e) { }
+        }
+    }, []);
 
     useEffect(() => {
         Promise.all([
@@ -35,13 +48,17 @@ export default function ProfilePage() {
                 return;
             }
             setUser(userData);
+            localStorage.setItem('apckarma-me', JSON.stringify(userData));
+
             const myLogs = logsData.filter(l => l.roll.toLowerCase() === userData.roll.toLowerCase());
             setLogs(myLogs);
+            localStorage.setItem('apckarma-mylogs', JSON.stringify(myLogs));
             setLoading(false);
         }).catch(() => router.push('/login'));
     }, [router]);
 
-    if (loading || !user) return <div className="loading">Loading</div>;
+    if (!isMounted) return null;
+    if (loading && !user) return <div className="app-container"><div className="page-content" style={{ textAlign: 'center', marginTop: 80 }}><span className="text-muted font-mono">Loading...</span></div></div>;
 
     const approvedLogs = logs.filter(l => l.status === 'approved');
     const totalHours = approvedLogs.reduce((sum, l) => sum + l.hours, 0);
@@ -53,59 +70,65 @@ export default function ProfilePage() {
             <ThemeToggle />
             <div className="app-container">
                 <AuthHeader />
+                <div className="page-content">
+                    <div className="profile-header">
+                        <div className="profile-avatar">
+                            {user?.name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                        <div className="profile-name">{user?.name}</div>
+                        <div className="profile-roll">{user?.roll}</div>
+                    </div>
 
-                <div className="profile-header">
-                    <div className="profile-avatar">
-                        {user.name?.charAt(0)?.toUpperCase() || '?'}
+                    <div className="stat-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{karma}</div>
+                            <div className="stat-label">Karma</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{totalHours}</div>
+                            <div className="stat-label">Hours</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{uniqueEvents}</div>
+                            <div className="stat-label">Events</div>
+                        </div>
                     </div>
-                    <div className="profile-name">{user.name}</div>
-                    <div className="profile-roll">{user.roll}</div>
-                </div>
 
-                <div className="stat-grid">
-                    <div className="stat-card">
-                        <div className="stat-value">{karma}</div>
-                        <div className="stat-label">Karma</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-value">{totalHours}</div>
-                        <div className="stat-label">Hours</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-value">{uniqueEvents}</div>
-                        <div className="stat-label">Events</div>
-                    </div>
-                </div>
+                    <div className="page-title" style={{ marginTop: 8 }}>My Logs</div>
 
-                <h2 className="page-title" style={{ fontSize: '1rem' }}>My Logs</h2>
-
-                {logs.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-icon">📋</div>
-                        <p>No logs yet. Go log some hours!</p>
-                    </div>
-                ) : (
-                    logs.map((log, i) => (
-                        <div key={i} className="card">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{log.company}</div>
-                                    <div className="text-muted font-mono" style={{ fontSize: '0.75rem' }}>
-                                        {log.hours}h · {timeAgo(log.timestamp)}
+                    {logs.length === 0 ? (
+                        <div className="empty-state">
+                            <p>No logs yet. Go log some hours!</p>
+                        </div>
+                    ) : (
+                        logs.map((log, i) => (
+                            <div key={i} className="card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#FFFFFF' }}>{log.company}</div>
+                                        <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: 2 }}>
+                                            {timeAgo(log.timestamp) || 'Imported'}
+                                        </div>
+                                        <div style={{ marginTop: 6 }}>
+                                            <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent)' }}>{log.hours}</span>
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--accent)' }}> hours</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                        <span className={`badge badge-${log.status}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.7rem' }}>
+                                            {log.status === 'pending' ? '⏳ PENDING' : log.status === 'approved' ? '✔ APPROVED' : '✖ REJECTED'}
+                                        </span>
+                                        {log.verification && (
+                                            <div className="text-muted" style={{ fontSize: '0.7rem', marginTop: 4 }}>
+                                                by {log.verification}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                <div>
-                                    <span className={`badge badge-${log.status}`}>{log.status}</span>
-                                    {log.verification && (
-                                        <div className="text-muted font-mono" style={{ fontSize: '0.65rem', marginTop: 2 }}>
-                                            by {log.verification}
-                                        </div>
-                                    )}
-                                </div>
                             </div>
-                        </div>
-                    ))
-                )}
+                        ))
+                    )}
+                </div>
             </div>
             <BottomNav />
         </>
