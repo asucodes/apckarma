@@ -41,7 +41,7 @@ export default function LoginPage() {
                         <img src="/apckarma.jpg" alt="APC Karma" className="logo-light" style={{ width: 104, height: 104, objectFit: 'contain', margin: '0 auto', borderRadius: '8px' }} />
                         <img src="/apckarma_white.png" alt="APC Karma" className="logo-dark" style={{ width: 104, height: 104, objectFit: 'contain', margin: '0 auto', filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.2))' }} />
                         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '16px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>APC Karma</h1>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 2 }}>Work Hour Tracker</p>
+
                     </div>
 
                     <form onSubmit={handleSubmit}>
