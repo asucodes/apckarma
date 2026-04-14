@@ -30,14 +30,29 @@ export default function FeedPage() {
     useEffect(() => {
         setIsMounted(true);
         // Load vote state from localStorage
-        const saved = localStorage.getItem('apckarma-votes');
-        if (saved) setVotedLogs(JSON.parse(saved));
+        try {
+            const saved = localStorage.getItem('apckarma-votes');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && typeof parsed === 'object') setVotedLogs(parsed);
+            }
+        } catch {
+            /* ignore */
+        }
         fetch('/api/logs')
-            .then(r => r.json())
-            .then(data => {
+            .then(async (r) => {
+                const data = await r.json();
+                if (!r.ok || !Array.isArray(data)) {
+                    setLoading(false);
+                    return;
+                }
                 const approved = data.filter(l => l.status === 'approved');
                 setLogs(approved);
-                localStorage.setItem('apckarma-feed', JSON.stringify(approved));
+                try {
+                    localStorage.setItem('apckarma-feed', JSON.stringify(approved));
+                } catch {
+                    /* ignore */
+                }
                 setLoading(false);
             })
             .catch(() => setLoading(false));

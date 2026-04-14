@@ -19,7 +19,19 @@ function timeAgo(dateStr) {
 }
 
 export default function AdminPage() {
-    const [logs, setLogs] = useState(() => { if (typeof window !== 'undefined') { const cached = localStorage.getItem('apckarma-admin-logs'); if (cached) return JSON.parse(cached); } return []; });
+    const [logs, setLogs] = useState(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const cached = localStorage.getItem('apckarma-admin-logs');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch {
+            /* ignore */
+        }
+        return [];
+    });
     const [events, setEvents] = useState([]);
     const [volunteers, setVolunteers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -55,16 +67,27 @@ export default function AdminPage() {
     }, [router]);
 
     const loadData = async () => {
+        const asArray = async (r) => {
+            const j = await r.json();
+            return r.ok && Array.isArray(j) ? j : [];
+        };
         try {
             const [logsRes, eventsRes, volsRes] = await Promise.all([
-                fetch('/api/admin/logs').then(r => r.json()),
-                fetch('/api/events').then(r => r.json()),
-                fetch('/api/volunteers').then(r => r.json()),
+                fetch('/api/admin/logs').then(asArray),
+                fetch('/api/events').then(asArray),
+                fetch('/api/volunteers').then(asArray),
             ]);
-            setLogs(logsRes); localStorage.setItem('apckarma-admin-logs', JSON.stringify(logsRes));
+            setLogs(logsRes);
+            try {
+                localStorage.setItem('apckarma-admin-logs', JSON.stringify(logsRes));
+            } catch {
+                /* ignore */
+            }
             setEvents(eventsRes);
             setVolunteers(volsRes);
-        } catch { } finally {
+        } catch {
+            /* network */
+        } finally {
             setLoading(false);
         }
     };

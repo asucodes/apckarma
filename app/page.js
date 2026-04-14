@@ -29,20 +29,34 @@ export default function LeaderboardPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        const cached = localStorage.getItem('apckarma-board');
-        if (cached) setData(d => (JSON.parse(cached)));
+        try {
+            const cached = localStorage.getItem('apckarma-board');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed)) setData(parsed);
+            }
+        } catch {
+            /* ignore corrupt cache */
+        }
 
         fetch('/api/leaderboard')
-            .then(r => r.json())
-            .then(d => {
-                setData(d);
-                localStorage.setItem('apckarma-board', JSON.stringify(d));
+            .then(async (r) => {
+                const d = await r.json();
+                if (r.ok && Array.isArray(d)) {
+                    setData(d);
+                    try {
+                        localStorage.setItem('apckarma-board', JSON.stringify(d));
+                    } catch {
+                        /* quota / private mode */
+                    }
+                }
                 setLoading(false);
             })
             .catch(() => setLoading(false));
     }, []);
 
-    const sortedData = [...data].sort((a, b) => {
+    const list = Array.isArray(data) ? data : [];
+    const sortedData = [...list].sort((a, b) => {
         switch (sortBy) {
             case 'karma': return b.karma - a.karma;
             case 'events': return b.eventCount - a.eventCount;

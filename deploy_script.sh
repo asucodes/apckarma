@@ -25,8 +25,18 @@ npm install
 echo "Building the Application..."
 npm run build
 
-echo "Starting Application with PM2..."
-pm2 start npm --name "apckarma" -- start
+echo "Syncing static assets into standalone (required or /_next/static/* 404s)..."
+mkdir -p .next/standalone/.next
+rm -rf .next/standalone/.next/static .next/standalone/public
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
+
+echo "Starting Application with PM2 (Next standalone)..."
+# next start + output:standalone is unsupported; run the bundled server
+ln -sf "$(pwd)/.env" "$(pwd)/.next/standalone/.env"
+cd "$(pwd)/.next/standalone"
+NODE_OPTIONS=--openssl-legacy-provider HOSTNAME=0.0.0.0 PORT=3000 pm2 start ./server.js --name "apckarma"
+cd /var/www/apckarma
 pm2 save
 
 echo "Checking port 3000..."

@@ -7,9 +7,15 @@ import ThemeToggle from '../components/ThemeToggle';
 
 export default function LogPage() {
     const [events, setEvents] = useState(() => {
-        if (typeof window !== 'undefined') {
+        if (typeof window === 'undefined') return [];
+        try {
             const cached = localStorage.getItem('apckarma-events');
-            if (cached) return JSON.parse(cached);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch {
+            /* ignore */
         }
         return [];
     });
@@ -27,10 +33,16 @@ export default function LogPage() {
 
         // Load events
         fetch('/api/events')
-            .then(r => r.json())
-            .then(data => {
-                setEvents(data);
-                localStorage.setItem('apckarma-events', JSON.stringify(data));
+            .then(async (r) => {
+                const data = await r.json();
+                if (r.ok && Array.isArray(data)) {
+                    setEvents(data);
+                    try {
+                        localStorage.setItem('apckarma-events', JSON.stringify(data));
+                    } catch {
+                        /* ignore */
+                    }
+                }
             })
             .catch(() => { });
     }, [router]);

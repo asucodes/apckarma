@@ -41,7 +41,10 @@ export default function ProfilePage() {
     useEffect(() => {
         Promise.all([
             fetch('/api/auth/me').then(r => r.ok ? r.json() : null),
-            fetch('/api/logs').then(r => r.json()),
+            fetch('/api/logs').then(async (r) => {
+                const j = await r.json();
+                return r.ok && Array.isArray(j) ? j : [];
+            }),
         ]).then(([userData, logsData]) => {
             if (!userData || userData.error) {
                 router.push('/login');
